@@ -3,6 +3,9 @@ const Sequelize = require("sequelize");
 // 引入数据库实例
 const seque = require("../utils/seque");
 
+const BookModel = require("../models/book");
+const WordbookModel = require("../models/wordbook");
+
 // 定义model
 const Word = seque.define(
   "Word",
@@ -55,3 +58,20 @@ const Word = seque.define(
 
 // 导出model
 module.exports = Word;
+
+Word.belongsToMany(BookModel, {
+  through: {
+    model: WordbookModel,
+    unique: false,
+  },
+  foreignKey: "wordid", //通过外键wid
+  constraints: false,
+});
+BookModel.belongsToMany(Word, {
+  through: {
+    model: WordbookModel,
+    unique: false,
+  },
+  foreignKey: "bookid", //通过外键bid
+  constraints: false,
+});

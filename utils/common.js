@@ -15,6 +15,7 @@ const exportObj = {
   clone,
   checkParams,
   autoFn,
+  getImgUrl,
 };
 // 导出对象，方便其他方法调用
 module.exports = exportObj;
@@ -66,4 +67,20 @@ function autoFn(tasks, res, resObj) {
       res.json(resObj);
     }
   });
+}
+
+/**
+ * 获取图片url方法
+ * @param req  请求对象
+ * @param imgName  图片名称
+ * @returns {string} 图片url
+ */
+function getImgUrl(req, imgName) {
+  // 获取当前域名，用于组装图片路径
+  const imgPath = req.protocol + "://" + req.get("host");
+
+  if (!imgName) {
+    return "";
+  }
+  return imgPath + "/upload/" + imgName;
 }

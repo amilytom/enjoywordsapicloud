@@ -4,6 +4,9 @@ const Common = require("../utils/common");
 // 引入user表的model
 const UserModel = require("../models/user");
 
+// 引入字典表的model
+const DictModel = require("../models/dict");
+
 // 引入常量
 const Constant = require("../constant/constant");
 
@@ -62,6 +65,24 @@ function list(req, res) {
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: DictModel,
+              as: "stageDict",
+              attributes: [["dname", "stagename"]],
+            },
+            {
+              model: DictModel,
+              as: "gradeDict",
+              attributes: [["dname", "gradename"]],
+            },
+            {
+              model: DictModel,
+              as: "termDict",
+              attributes: [["dname", "termname"]],
+            },
+          ],
+          raw: true,
         })
           .then(function (result) {
             // 查询结果处理
@@ -77,6 +98,9 @@ function list(req, res) {
                 stage: v.stage,
                 grade: v.grade,
                 term: v.term,
+                stagename: v["stageDict.stagename"],
+                gradename: v["gradeDict.gradename"],
+                termname: v["termDict.termname"],
                 lastLoginAt: dateFormat(v.lastLoginAt, "yyyy-mm-dd HH:MM:ss"),
                 createdAt: dateFormat(v.createdAt, "yyyy-mm-dd HH:MM:ss"),
               };
@@ -119,7 +143,7 @@ function info(req, res) {
     query: [
       "checkParams",
       (results, cb) => {
-        // 使用admin的model中的方法查询
+        // 使用user的model中的方法查询
         UserModel.findByPk(req.params.uid, {})
           .then(function (result) {
             // 查询结果处理
@@ -129,7 +153,6 @@ function info(req, res) {
               resObj.data = {
                 uid: result.uid,
                 username: result.username,
-                password: result.password,
                 name: result.name,
                 stage: result.stage,
                 grade: result.grade,
@@ -170,15 +193,22 @@ function add(req, res) {
     // 校验参数方法
     checkParams: (cb) => {
       // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
-      Common.checkParams(req.body, ["username", "password", "name"], cb);
+      Common.checkParams(
+        req.body,
+        ["username", "password", "name", "stage", "grade", "term"],
+        cb
+      );
     },
     // 添加方法，依赖校验参数方法
     add: (cb) => {
-      // 使用admin的model中的方法插入到数据库
+      // 使用user的model中的方法插入到数据库
       UserModel.create({
         username: req.body.username,
         password: req.body.password,
         name: req.body.name,
+        stage: req.body.stage,
+        grade: req.body.grade,
+        term: req.body.term,
       })
         .then(function (result) {
           // 插入结果处理
@@ -207,16 +237,18 @@ function update(req, res) {
     // 校验参数方法
     checkParams: (cb) => {
       // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
-      Common.checkParams(req.body, ["uid", "username", "password", "name"], cb);
+      Common.checkParams(req.body, ["uid", "username", "name"], cb);
     },
     // 更新方法，依赖校验参数方法
     update: (cb) => {
-      // 使用admin的model中的方法更新
+      // 使用user的model中的方法更新
       UserModel.update(
         {
           username: req.body.username,
-          password: req.body.password,
           name: req.body.name,
+          stage: req.body.stage ? req.body.stage : 0,
+          grade: req.body.grade ? req.body.grade : 0,
+          term: req.body.term ? req.body.term : 0,
         },
         {
           where: {
@@ -261,7 +293,7 @@ function updatePwd(req, res) {
     },
     // 更新方法，依赖校验参数方法
     update: (cb) => {
-      // 使用admin的model中的方法更新
+      // 使用user的model中的方法更新
       UserModel.update(
         {
           password: req.body.password,
@@ -308,7 +340,7 @@ function remove(req, res) {
       Common.checkParams(req.body, ["uid"], cb);
     },
     remove: (cb) => {
-      // 使用admin的model中的方法更新
+      // 使用user的model中的方法更新
       UserModel.destroy({
         where: {
           uid: req.body.uid,

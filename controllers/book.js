@@ -1,8 +1,10 @@
 // 引入公共方法
 const Common = require("../utils/common");
 
-// 引入Class表的model
+// 引入bool表的model
 const BookModel = require("../models/book");
+//引入class表的model
+const ClassModel = require("../models/class");
 
 // 引入常量
 const Constant = require("../constant/constant");
@@ -50,12 +52,22 @@ function list(req, res) {
           //whereCondition.bname = req.query.bname; //精确查询
           whereCondition.bname = { [Op.like]: `%${req.query.bname}%` }; //模糊查询
         }
+        if (req.query.classid) {
+          whereCondition.classid = req.query.classid; //精确查询
+          //whereCondition.classid = { [Op.like]: `%${req.query.classid}%` }; //模糊查询
+        }
         // 通过offset和limit使用username的model去数据库中查询，并按照创建时间排序
         BookModel.findAndCountAll({
           where: whereCondition,
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: ClassModel,
+              attributes: ["cname"],
+            },
+          ],
         })
           .then(function (result) {
             // 查询结果处理
@@ -68,6 +80,7 @@ function list(req, res) {
                 bid: v.bid,
                 bname: v.bname,
                 classid: v.classid,
+                cname: v.Class.cname,
                 cover: v.cover,
                 createdAt: dateFormat(v.createdAt, "yyyy-mm-dd HH:MM:ss"),
               };

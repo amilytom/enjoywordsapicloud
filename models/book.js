@@ -3,6 +3,8 @@ const Sequelize = require("sequelize");
 // 引入数据库实例
 const seque = require("../utils/seque");
 
+const ClassMode = require("./class");
+
 // 定义model
 const Book = seque.define(
   "Book",
@@ -40,3 +42,9 @@ const Book = seque.define(
 
 // 导出model
 module.exports = Book;
+
+// BelongsTo关联表示一对一关系的外键存在于源模型。
+Book.belongsTo(ClassMode, {
+  foreignKey: "classid",
+  constraints: false,
+});

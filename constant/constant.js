@@ -105,6 +105,16 @@ const obj = {
     code: 113,
     msg: "词性不存在",
   },
+  // 定义错误返回-保存文件失败
+  SAVE_FILE_ERROR: {
+    code: 114,
+    msg: "保存文件失败",
+  },
+  // 定义错误返回-保存文件失败
+  DEL_FILE_ERROR: {
+    code: 115,
+    msg: "删除文件失败",
+  },
 };
 // 导出对象，给其他方法调用
 module.exports = obj;

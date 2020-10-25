@@ -16,10 +16,17 @@ const Token = require("../utils/token");
 // 设定默认Token过期时间，单位s
 const TOKEN_EXPIRE_SENCOND = 36000;
 
+// 引入fs模块，用于操作文件
+const fs = require("fs");
+// 引入path模块，用于操作文件路径
+const path = require("path");
+
 // 配置对象
 let exportObj = {
   login,
   regist,
+  upload,
+  delFile,
 };
 // 导出对象，供其它模块调用
 module.exports = exportObj;
@@ -158,6 +165,88 @@ function regist(req, res) {
           cb(Constant.DEFAULT_ERROR);
         });
     },
+  };
+  // 执行公共方法中的autoFn方法，返回数据
+  Common.autoFn(tasks, res, resObj);
+}
+
+// 上传图片方法
+function upload(req, res) {
+  // 定义一个返回对象
+  const resObj = Common.clone(Constant.DEFAULT_SUCCESS);
+  // 定义一个async任务
+  let tasks = {
+    // 校验参数方法
+    checkParams: (cb) => {
+      // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
+      Common.checkParams(req.file, ["originalname"], cb);
+    },
+    // 查询方法，依赖校验参数方法
+    save: [
+      "checkParams",
+      (results, cb) => {
+        // 获取上传文件的扩展名
+        let lastIndex = req.file.originalname.lastIndexOf(".");
+        let extension = req.file.originalname.substr(lastIndex - 1);
+        // 使用时间戳作为新文件名
+        let fileName = new Date().getTime() + extension;
+        console.log(fileName);
+        // 保存文件，用新文件名写入
+        // 三个参数
+        // 1.图片的绝对路径
+        // 2.写入的内容
+        // 3.回调函数
+        fs.writeFile(
+          path.join(__dirname, "../public/upload/" + fileName),
+          req.file.buffer,
+          (err) => {
+            // 保存文件出错
+            if (err) {
+              cb(Constant.SAVE_FILE_ERROR);
+            } else {
+              resObj.data = {
+                // 返回文件名
+                fileName: fileName,
+                // 通过公共方法getImgUrl拼接图片路径
+                path: Common.getImgUrl(req, fileName),
+              };
+              cb(null);
+            }
+          }
+        );
+      },
+    ],
+  };
+  // 执行公共方法中的autoFn方法，返回数据
+  Common.autoFn(tasks, res, resObj);
+}
+
+// 删除上传的文件
+function delFile(req, res) {
+  // 定义一个返回对象
+  const resObj = Common.clone(Constant.DEFAULT_SUCCESS);
+  // 定义一个async任务
+  let tasks = {
+    // 校验参数方法
+    checkParams: (cb) => {
+      // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
+      Common.checkParams(req.body, ["filename"], cb);
+    },
+    // 查询方法，依赖校验参数方法
+    remove: [
+      "checkParams",
+      (results, cb) => {
+        let fileName = req.body.filename;
+        let filepath = path.join(__dirname, "../public/upload/" + fileName);
+        fs.unlink(filepath, (err) => {
+          if (err) {
+            cb(Constant.DEL_FILE_ERROR);
+          } else {
+            cb(null);
+          }
+        });
+      },
+    ],
   };
   // 执行公共方法中的autoFn方法，返回数据
   Common.autoFn(tasks, res, resObj);

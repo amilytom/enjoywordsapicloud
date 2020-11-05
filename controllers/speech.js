@@ -33,12 +33,16 @@ function list(req, res) {
     // 校验参数方法
     checkParams: (cb) => {
       // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
-      Common.checkParams(req.query, [], cb);
+      Common.checkParams(req.query, ["page", "rows"], cb);
     },
     // 查询方法，依赖校验参数方法
     query: [
       "checkParams",
       (results, cb) => {
+        // 根据前端提交参数计算SQL语句中需要的offset，即从多少条开始查询
+        let offset = req.query.rows * (req.query.page - 1) || 0;
+        // 根据前端提交参数计算SQL语句中需要的limit，即查询多少条
+        let limit = parseInt(req.query.rows) || 20;
         // 设定一个查询条件对象
         let whereCondition = {};
         // 如果查询单词教材名存在，查询对象增加单词教材名
@@ -49,6 +53,8 @@ function list(req, res) {
         // 通过offset和limit使用model去数据库中查询，并按照创建时间排序
         SpeechModel.findAndCountAll({
           where: whereCondition,
+          offset: offset,
+          limit: limit,
           order: [["pid", "DESC"]],
         })
           .then(function (result) {

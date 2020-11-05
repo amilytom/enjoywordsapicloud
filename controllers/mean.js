@@ -1,8 +1,14 @@
 // 引入公共方法
 const Common = require("../utils/common");
 
-// 引入Class表的model
+// 引入mean表的model
 const MeanModel = require("../models/mean");
+
+// 引入单词表的model
+const WordModel = require("../models/word");
+
+// 引入词性表的model
+const SpeechModel = require("../models/speech");
 
 // 引入常量
 const Constant = require("../constant/constant");
@@ -47,15 +53,33 @@ function list(req, res) {
         let whereCondition = {};
         // 如果查询单词教材名存在，查询对象增加单词教材名
         if (req.query.mean) {
-          //whereCondition.word = req.query.word; //精确查询
+          //whereCondition.mean = req.query.mean; //精确查询
           whereCondition.mean = { [Op.like]: `%${req.query.mean}%` }; //模糊查询
         }
+        // if (req.query.word) {
+        //   //whereCondition.word = req.query.word; //精确查询
+        //   whereCondition.word = { [Op.like]: `%${req.query.word}%` }; //模糊查询
+        // }
         // 通过offset和limit使用model去数据库中查询，并按照创建时间排序
         MeanModel.findAndCountAll({
           where: whereCondition,
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: WordModel,
+              attributes: ["word"],
+              where: {
+                word: { [Op.like]: `%${req.query.word}%` },
+              },
+            },
+            {
+              model: SpeechModel,
+              attributes: ["pos", "posname"],
+            },
+          ],
+          raw: true,
         })
           .then(function (result) {
             // 查询结果处理
@@ -67,8 +91,11 @@ function list(req, res) {
               let obj = {
                 mid: v.mid,
                 posid: v.posid,
-                mean: v.mean,
+                pos: v["Speech.pos"],
+                posname: v["Speech.posname"],
                 wordid: v.wordid,
+                word: v["Word.word"],
+                mean: v.mean,
                 createdAt: dateFormat(v.createdAt, "yyyy-mm-dd HH:MM:ss"),
               };
               list.push(obj);

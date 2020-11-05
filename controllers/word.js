@@ -66,6 +66,7 @@ function list(req, res) {
             result.rows.forEach((v, i) => {
               let obj = {
                 wid: v.wid,
+                word: v.word,
                 spell: v.spell,
                 voice: v.voice,
                 plural: v.plural,
@@ -158,11 +159,7 @@ function add(req, res) {
     // 校验参数方法
     checkParams: (cb) => {
       // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
-      Common.checkParams(
-        req.body,
-        ["word", "spell", "voice", "plural", "doing", "done"],
-        cb
-      );
+      Common.checkParams(req.body, ["word", "spell"], cb);
     },
     // 添加方法，依赖校验参数方法
     add: (cb) => {

@@ -1,11 +1,13 @@
 // 引入Sequelize模块
-const Sequelize = require("sequelize");
+const Sequelize = require('sequelize');
 // 引入数据库实例
-const seque = require("../utils/seque");
+const seque = require('../utils/seque');
+
+const DictModel = require('./dict');
 
 // 定义model
 const Train = seque.define(
-  "Train",
+  'Train',
   {
     // 主键
     eid: {
@@ -59,9 +61,15 @@ const Train = seque.define(
     // 是否支持驼峰
     underscored: true,
     // mysql数据库表名
-    tableName: "stu_train",
+    tableName: 'stu_train'
   }
 );
 
 // 导出model
 module.exports = Train;
+
+// BelongsTo关联表示一对一关系的外键存在于源模型。
+Train.belongsTo(DictModel, {
+  foreignKey: 'forum',
+  constraints: false
+});

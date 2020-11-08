@@ -4,6 +4,8 @@ const Common = require("../utils/common");
 // 引入Class表的model
 const TrainModel = require("../models/train");
 
+const DictModel = require("../models/dict");
+
 // 引入常量
 const Constant = require("../constant/constant");
 
@@ -54,12 +56,23 @@ function list(req, res) {
           whereCondition.uid = req.query.uid; //精确查询
           //whereCondition.uid = { [Op.like]: `%${req.query.uid}%` }; //模糊查询
         }
+        if (req.query.forum) {
+          whereCondition.forum = req.query.forum; //精确查询
+          //whereCondition.uid = { [Op.like]: `%${req.query.uid}%` }; //模糊查询
+        }
         // 通过offset和limit使用model去数据库中查询，并按照创建时间排序
         TrainModel.findAndCountAll({
           where: whereCondition,
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: DictModel,
+              attributes: ["dname"],
+            },
+          ],
+          raw: true,
         })
           .then(function (result) {
             // 查询结果处理
@@ -73,6 +86,7 @@ function list(req, res) {
                 label: v.label,
                 uid: v.uid,
                 forum: v.forum,
+                dname: v["Dict.dname"],
                 score: v.score,
                 total: v.total,
                 right: v.right,

@@ -59,19 +59,19 @@ const Word = seque.define(
 // 导出model
 module.exports = Word;
 
-Word.belongsToMany(BookModel, {
-  through: {
-    model: WordbookModel,
-    unique: false,
-  },
-  foreignKey: "wordid", //通过外键wid
-  constraints: false,
-});
-BookModel.belongsToMany(Word, {
-  through: {
-    model: WordbookModel,
-    unique: false,
-  },
-  foreignKey: "bookid", //通过外键bid
-  constraints: false,
-});
+// Word.belongsToMany(BookModel, {
+//   through: {
+//     model: WordbookModel,
+//     unique: false,
+//   },
+//   foreignKey: "wordid", //通过外键wid
+//   constraints: false,
+// });
+// BookModel.belongsToMany(Word, {
+//   through: {
+//     model: WordbookModel,
+//     unique: false,
+//   },
+//   foreignKey: "bookid", //通过外键bid
+//   constraints: false,
+// });

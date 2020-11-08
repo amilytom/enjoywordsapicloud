@@ -32,31 +32,45 @@ function list(req, res) {
   let tasks = {
     // 校验参数方法
     checkParams: (cb) => {
-      // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
-      Common.checkParams(req.query, ["page", "rows"], cb);
+      // 如果传入dropList参数，代表需要下拉列表，跳过分页逻辑
+      if (req.query.dropList) {
+        cb(null);
+      } else {
+        // 调用公共方法中的校验参数方法，成功继续后面操作，失败则传递错误信息到async最终方法
+        Common.checkParams(req.query, ["page", "rows"], cb);
+      }
     },
     // 查询方法，依赖校验参数方法
     query: [
       "checkParams",
       (results, cb) => {
-        // 根据前端提交参数计算SQL语句中需要的offset，即从多少条开始查询
-        let offset = req.query.rows * (req.query.page - 1) || 0;
-        // 根据前端提交参数计算SQL语句中需要的limit，即查询多少条
-        let limit = parseInt(req.query.rows) || 20;
+        let searchOption;
         // 设定一个查询条件对象
         let whereCondition = {};
-        // 如果查询单词教材名存在，查询对象增加单词教材名
+        // 如果查询班级名存在，查询对象增加班级名
         if (req.query.posname) {
-          //whereCondition.word = req.query.word; //精确查询
+          //whereCondition.posname = req.query.posname; //精确查询
           whereCondition.posname = { [Op.like]: `%${req.query.posname}%` }; //模糊查询
         }
+        if (req.query.dropList) {
+          searchOption = {
+            where: whereCondition,
+            order: [["pid", "DESC"]],
+          };
+        } else {
+          // 根据前端提交参数计算SQL语句中需要的offset，即从多少条开始查询
+          let offset = req.query.rows * (req.query.page - 1) || 0;
+          // 根据前端提交参数计算SQL语句中需要的limit，即查询多少条
+          let limit = parseInt(req.query.rows) || 20;
+          searchOption = {
+            where: whereCondition,
+            offset: offset,
+            limit: limit,
+            order: [["pid", "DESC"]],
+          };
+        }
         // 通过offset和limit使用model去数据库中查询，并按照创建时间排序
-        SpeechModel.findAndCountAll({
-          where: whereCondition,
-          offset: offset,
-          limit: limit,
-          order: [["pid", "DESC"]],
-        })
+        SpeechModel.findAndCountAll(searchOption)
           .then(function (result) {
             // 查询结果处理
             // 定义一个空数组list，用来存放最终结果

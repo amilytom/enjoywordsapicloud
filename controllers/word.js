@@ -122,6 +122,7 @@ function info(req, res) {
               // 将查询到的结果给返回对象赋值
               resObj.data = {
                 wid: result.wid,
+                word: result.word,
                 spell: result.spell,
                 voice: result.wordid,
                 plural: result.voice,

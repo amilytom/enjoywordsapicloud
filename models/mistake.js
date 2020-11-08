@@ -3,6 +3,8 @@ const Sequelize = require("sequelize");
 // 引入数据库实例
 const seque = require("../utils/seque");
 
+const TrainModel = require("./train");
+
 // 定义model
 const Mistake = seque.define(
   "Mistake",
@@ -55,3 +57,9 @@ const Mistake = seque.define(
 
 // 导出model
 module.exports = Mistake;
+
+// BelongsTo关联表示一对一关系的外键存在于源模型。
+Mistake.belongsTo(TrainModel, {
+  foreignKey: "labelid",
+  constraints: false,
+});

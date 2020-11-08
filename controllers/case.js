@@ -4,6 +4,12 @@ const Common = require("../utils/common");
 // 引入Class表的model
 const CaseModel = require("../models/case");
 
+// 引入单词表的model
+const WordModel = require("../models/word");
+
+// 引入词性表的model
+const SpeechModel = require("../models/speech");
+
 // 引入常量
 const Constant = require("../constant/constant");
 
@@ -47,8 +53,14 @@ function list(req, res) {
         let whereCondition = {};
         // 如果查询单词教材名存在，查询对象增加单词教材名
         if (req.query.example) {
-          //whereCondition.word = req.query.word; //精确查询
+          //whereCondition.example = req.query.example; //精确查询
           whereCondition.example = { [Op.like]: `%${req.query.example}%` }; //模糊查询
+        }
+        if (req.query.translation) {
+          //whereCondition.translation = req.query.translation; //精确查询
+          whereCondition.translation = {
+            [Op.like]: `%${req.query.translation}%`,
+          }; //模糊查询
         }
         // 通过offset和limit使用model去数据库中查询，并按照创建时间排序
         CaseModel.findAndCountAll({
@@ -56,6 +68,20 @@ function list(req, res) {
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: WordModel,
+              attributes: ["word"],
+              where: {
+                word: { [Op.like]: `%${req.query.word}%` },
+              },
+            },
+            {
+              model: SpeechModel,
+              attributes: ["pos", "posname"],
+            },
+          ],
+          raw: true,
         })
           .then(function (result) {
             // 查询结果处理
@@ -67,10 +93,13 @@ function list(req, res) {
               let obj = {
                 id: v.id,
                 wordid: v.wordid,
+                word: v["Word.word"],
                 example: v.example,
                 voice: v.voice,
                 translation: v.translation,
                 posid: v.posid,
+                pos: v["Speech.pos"],
+                posname: v["Speech.posname"],
                 createdAt: dateFormat(v.createdAt, "yyyy-mm-dd HH:MM:ss"),
               };
               list.push(obj);

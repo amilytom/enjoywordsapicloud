@@ -4,6 +4,8 @@ const Common = require("../utils/common");
 // 引入Class表的model
 const MistakeModel = require("../models/mistake");
 
+const TrainModel = require("../models/train");
+
 // 引入常量
 const Constant = require("../constant/constant");
 
@@ -57,6 +59,16 @@ function list(req, res) {
           offset: offset,
           limit: limit,
           order: [["created_at", "DESC"]],
+          include: [
+            {
+              model: TrainModel,
+              attributes: ["label"],
+              where: {
+                label: { [Op.like]: `%${req.query.label}%` },
+              },
+            },
+          ],
+          raw: true,
         })
           .then(function (result) {
             // 查询结果处理
@@ -68,6 +80,7 @@ function list(req, res) {
               let obj = {
                 mid: v.mid,
                 labelid: v.labelid,
+                label: v["Train.label"],
                 errnum: v.errnum,
                 question: v.question,
                 answer: v.answer,

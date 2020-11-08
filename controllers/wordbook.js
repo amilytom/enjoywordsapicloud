@@ -1,16 +1,20 @@
 // 引入公共方法
-const Common = require("../utils/common");
+const Common = require('../utils/common');
 
 // 引入Class表的model
-const WordbookModel = require("../models/wordbook");
+const WordbookModel = require('../models/wordbook');
+
+const BookModel = require('../models/book');
+
+const WordModel = require('../models/word');
 
 // 引入常量
-const Constant = require("../constant/constant");
+const Constant = require('../constant/constant');
 
 // 引入dateformat包
-const dateFormat = require("dateformat");
+const dateFormat = require('dateformat');
 
-const Sequelize = require("sequelize");
+const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
 // 配置对象
@@ -59,7 +63,24 @@ function list(req, res) {
           where: whereCondition,
           offset: offset,
           limit: limit,
-          order: [["id", "DESC"]],
+          order: [['id', 'DESC']],
+          include: [
+            {
+              model: WordModel,
+              attributes: ['word'],
+              where: {
+                word: {[Op.like]: `%${req.query.word}%`}
+              }
+            },
+            {
+              model: BookModel,
+              attributes: ['bname'],
+              where: {
+                bname: {[Op.like]: `%${req.query.bname}%`}
+              }
+            }
+          ],
+          raw: true
         })
           .then(function (result) {
             // 查询结果处理
@@ -71,7 +92,9 @@ function list(req, res) {
               let obj = {
                 id: v.id,
                 bookid: v.bookid,
+                bname: v['Book.bname'],
                 wordid: v.wordid,
+                word: v['Word.word']
               };
               list.push(obj);
             });
